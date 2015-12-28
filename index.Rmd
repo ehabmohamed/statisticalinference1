@@ -1,0 +1,124 @@
+---
+title: "Inferential Data Analysis"
+author: "Ehab Mohamed"
+date: "25 October 2015"
+output: html_document
+---
+
+## Data exploration
+
+This section provides some basic exploratory data analyses and basic summary of the data.
+
+```{r}
+library(ggplot2)
+data(ToothGrowth)
+```
+```{r}
+head(ToothGrowth)
+dim(ToothGrowth)
+str(ToothGrowth)
+```
+
+As shown above, data has 60 observations and 3 variables:
+
+1. len: Tooth length 
+2. supp: Supplement type, which is VC or OJ 
+3. dose: Dose in milligrams
+
+```{r}
+summary(ToothGrowth)
+```
+
+The below figure shows the tooth length by supplement type and dosage (mg):
+
+```{r}
+qplot(supp,len,data=ToothGrowth, facets=~dose, 
+      main="Tooth length by supplement type and dosage (mg)",
+      xlab="Supplement type", ylab="Tooth length") + geom_boxplot(aes(fill = supp))
+```
+
+As shown in the above figure, the tooth length increases as the dosage increases. However, in case of dosage 0.5 and 1.0 mg, the OJ supplement is more effective than the VC supplement.
+
+## Hypothesis Testing
+
+### Assumptions
+
+* The variables must be independent and identically distributed (iid).
+
+* Variances of tooth growth are different when using different supplement and dosage.
+
+### Hypothesis for the supplement OJ vs VC
+
+In this test, the null hypothesis is no difference in tooth growth when using the supplement OJ and VC.
+
+lenOJ=lenVC
+
+And the alternate hypothesis is more tooth growth when using supplement OJ than VC.
+
+lenOJ>lenVC
+
+The subsets of the data for OJ and VC supplements can be obtained as follows:
+
+```{r}
+OJ = ToothGrowth$len[ToothGrowth$supp == 'OJ']
+VC = ToothGrowth$len[ToothGrowth$supp == 'VC']
+```
+
+Using the below t-test, the hypothesis can be examined:
+
+```{r}
+t.test(OJ, VC, alternative = "greater", paired = FALSE, var.equal = FALSE, conf.level = 0.95)
+```
+
+The resulting p-value is 0.03032 which is lower than 0.05 (the default value for the tolerance of the error alpha). Accordingly, the null hypothesis is rejected. 
+
+It can be comcluded that it is very likely that supplement OJ has greater effect on tooth growth than supplement VC.
+
+### Hypothesis for the dossage
+
+In this test, the null hypothesis is that there is no difference in tooth growth between dosage. Our alternate hypothesis is that there are more tooth growth when the dosage increases.
+
+Subsets of different dosages can be extracted as follows:
+
+```{r}
+doseHalf = ToothGrowth$len[ToothGrowth$dose == 0.5]
+doseOne = ToothGrowth$len[ToothGrowth$dose == 1]
+doseTwo = ToothGrowth$len[ToothGrowth$dose == 2]
+```
+
+Using the below t-test, the hypothesis can be examined:
+
+```{r}
+t.test(doseHalf, doseOne, alternative = "less", paired = FALSE, var.equal = FALSE, conf.level = 0.95)
+```
+
+As shown in the above result, the p-value, which is 6.342e-08, is lower than 0.05. Accordingly, the null hypothesis is rejected. This indicates that there is almost no chances of obtain an extreme value for the difference in mean of those dossages on the tooth growth for doseHalf < doseOne.
+
+The below code performs the test on the One and Two dossage:
+
+```{r}
+t.test(doseOne, doseTwo, alternative = "less", paired = FALSE, var.equal = FALSE, conf.level = 0.95)
+```
+
+The resulting p-value is 9.532e-06 which is close to 0. Accordingly, the null hypothesis is rejected. This indicates that there is almost no chances of obtain an extreme value for the difference in mean of those dossages on the tooth growth for doseOne < doseTwo.
+
+### Hypothesis for the supplement OJ vs VC at dossage 2.0 mg
+
+In this test, the null hypothesis is that there is no difference in tooth growth when using the supplement OJ and VC at dosage 2.0 mg.
+
+And the alternate hypothesis is that there is difference tooth growth when using supplement OJ and VC at dosage 2.0 mg.
+
+Subsets of different supplements can be extracted as follows:
+
+```{r}
+OJ2 = ToothGrowth$len[ToothGrowth$supp == 'OJ' & ToothGrowth$dose == 2]
+VC2 = ToothGrowth$len[ToothGrowth$supp == 'VC' & ToothGrowth$dose == 2]
+```
+
+Using the below t-test, the hypothesis can be examined:
+
+```{r}
+t.test(OJ2, VC2, alternative = "two.sided", paired = FALSE, var.equal = FALSE, conf.level = 0.95)
+```
+
+The resulting p-value is 0.9639 which is higher than 0.05. Accordingly, the null hypothesis can not be rejected. This indicates that there is insufficient evidence to show that there is a difference in tooth growth when using supplement OJ and VC at dosage 2.0 mg.
